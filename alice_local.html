@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.svg-container {
+ display: inline-block;
+ position: relative;
+ width: 70%;
+ padding-bottom: 80%; /* aspect ratio */
+ vertical-align: top;
+ overflow: hidden;
+}
+.svg-content-responsive {
+ display: inline-block;
+ position: absolute;
+ top: 10px;
+ left: 0;
+}
+</style>
+<body>
+
+  <div id="okay"></div>
+
+
+ <script src="http://d3js.org/d3.v3.min.js"></script>
+ <script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+var width = 260,
+ height = 460;
+
+
+//note: for phone, change .attr("viewBox", "0 100 1000 1300") 700 number to be 700. 
+
+var svg = d3.select("body")
+ .append("div")
+ .classed("svg-container", true)
+ .append("svg")
+ .attr("preserveAspectRatio", "xMinYMin meet")
+ .attr("viewBox", "0 50 100 1000")
+ .classed("svg-content-responsive", true);
+
+
+var purples = ["#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#54278f","#3f007d"]
+
+
+// var legend = d3.select('svg')
+//     .append("g")
+//     .selectAll("g")
+//     .data(purples)
+//     .enter()
+//     .append('g')
+//       .attr('class', 'legend')
+//       .attr('transform', function(d, i) {
+//         var height = '6';
+//         var x = 40;
+//         var y = i * 22 + 100;
+//         return 'translate(' + x + ',' + y + ')';
+//     })
+//        .classed("legend", true);
+
+//     legend.append('rect')
+//     .attr('width', '20')
+//     .attr('height', '20')
+//     .style('fill', function(d){return d;}); 
+    // .style('stroke', color);
+ 
+// legend.append('text')
+//     .attr('x', legendRectSize + legendSpacing)
+//     .attr('y', legendRectSize - legendSpacing)
+//     .text(function(d) { return d; });
+
+var g = svg.append('g');
+
+var mapLayer = g.append('g')
+ .classed('map-layer', true);
+
+
+var projection = d3.geo.mercator()
+ .scale(4500)
+ .center([-74.0059, 40.7128])
+ .translate([width / 2, height / 2]);
+
+
+var path = d3.geo.path()
+ .projection(projection);
+
+
+d3.json("Cities_Towns.geojson", function(error, uk) {
+
+    function ofcounty(hash) {
+          return hash.properties.COUNTY == 'Westchester'  
+          // || hash.properties.COUNTY == 'Rockland' || hash.properties.COUNTY == 'Putnam'
+        }
+
+// var features = uk.features;
+ var features = uk.features.filter(ofcounty);
+var purples = ["#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#54278f","#3f007d"]
+ var colorScale = d3.scale.linear()
+ .domain(d3.extent(features, function(d) { return d.properties.ALICE + d.properties.poverty; }))
+ .range([purples[0], purples[6]])
+
+
+mapLayer.selectAll('path')
+ .data(features)
+ .enter().append('path')
+ .attr('d', path)
+ .attr('vector-effect', 'non-scaling-stroke')
+ .style('fill', function(d) { return colorScale(d.properties.ALICE + d.properties.poverty); })
+// .style("stroke", "black")
+//                 .style("stroke-width", "1");
+
+
+svg.selectAll(".subunit")
+                .data(features)
+            .enter().append("path")
+                .attr("d", path)
+                .style('fill', function(d) { return colorScale(d.properties.ALICE + d.properties.poverty); })
+                .on("mouseover", function(d) {
+                    // var xPosition = d3.mouse(this)[0];
+                    // var yPosition = d3.mouse(this)[1] - 30;
+
+                    document.getElementById('okay').innerHTML = d.properties.NAME;
+
+                    // var above_poverty = 1 - Number(d.properties.poverty) - Number(d.properties.ALICE)
+
+                    // var pieArray = [
+                    //   {label: 'poverty', percent: d.properties.poverty},
+                    //   {label: 'poverty', percent: d.properties.ALICE},
+                    //   {label: 'poverty', percent: above_poverty}
+                    // ]
+
+                    // pie(pieArray);
+
+                    // svg.append("text")
+                    //     .attr("id", "tooltip")
+                    //     .attr("x", xPosition)
+                    //     .attr("y", yPosition)
+                    //     .attr("text-anchor", "middle")
+                    //     .attr("font-family", "sans-serif")
+                    //     .attr("font-size", "11px")
+                    //     .attr("font-weight", "bold")
+                    //     .attr("fill", "black")
+                    //     .text(d.properties.NAME);
+
+                    // d3.select(this)
+                    // .style("fill", "#509e2f");
+                })
+                .on("mouseout", function(d) {
+                //     d3.select("#tooltip").remove();
+
+                //     d3.select(this)
+                //     .transition()
+                //     .duration(250)
+                //     .style("fill", function(d) {
+                //     var population = d.properties.POP2010;
+
+                //     if (population) {
+                //         return colorScale(d.properties.POP2010);
+                //     } else {
+                //         return "#ddd";
+                //     }
+                // });
+              });
+})
+
+
+// var tF = ['Passenger','Delivery','Car'].map(function(d){
+//   d3.json("Counties.geojson", function(error, uk) {
+//     debugger
+//     return {type: uk[1].properties.POP2010}
+//     })
+//   });
+
+
+var pie = function pie(dataObject){
+
+
+// {"NAME"=>"Rockland",
+// "ABBREV"=>"ROCK",
+// "GNIS_ID"=>"974142",
+// "POP1990"=>265475,
+// "POP2000"=>286753,
+// "POP2010"=>311687,
+// "NYC"=>"N",
+// "SP_ZONE"=>"East",
+// "DOS_LL"=>nil,
+// "DOSLL_DATE"=>nil,
+// "DATEMOD"=>nil,
+// "COUNTYFIPS"=>"087",
+// "SWIS"=>"390000",
+// "CALC_SqMi"=>199.303346}
+//
+//DESIRED ARRAY:
+// [{label: 'poverty', percent: 16},
+// {label: 'ALICE', percent: 14},
+// {label: 'Above AT', percent: 70}]
+
+  // var dataset = [
+  //         { label: 'Abulia', count: 10 },
+  //         { label: 'Betelgeuse', count: 20 },
+  //         { label: 'Cantaloupe', count: 30 },
+  //         { label: 'Dijkstra', count: 40 }
+  //       ];
+
+  var width = 460,
+    height = 200,
+    radius = Math.min(width, height) / 2;
+
+var color = d3.scale.ordinal()
+    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+var arc = d3.svg.arc()
+    .outerRadius(radius - 10)
+    .innerRadius(0);
+
+var labelArc = d3.svg.arc()
+    .outerRadius(radius - 40)
+    .innerRadius(radius - 40);
+
+var pie = d3.layout.pie()
+    .sort(null)
+    .value(function(d) { return d.percent; });
+
+var svg = d3.select("#okay").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+  .append("g")
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+        // var arc = d3.arc()
+        //   .innerRadius(0)
+        //   .outerRadius(radius);
+
+        // var pie = d3.pie()
+        //   .value(function(d) { return d.count; })
+        //   .sort(null);
+
+        var path = svg.selectAll('path')
+          .data(pie(dataObject))
+          .enter()
+          .append('path')
+          .attr('d', arc)
+          .attr('fill', function(d, i) {
+            return color(i);
+          });
+          }
+
+
+
+
+function pieChart(pD){
+    var pC ={},    pieDim ={w:250, h: 250};
+    pieDim.r = Math.min(pieDim.w, pieDim.h) / 2;
+
+    // create svg for pie chart.
+    var piesvg = d3.select('okay').append("svg")
+        .attr("width", pieDim.w).attr("height", pieDim.h).append("g")
+        .attr("transform", "translate("+pieDim.w/2+","+pieDim.h/2+")");
+
+    // create function to draw the arcs of the pie slices.
+    var arc = d3.svg.arc().outerRadius(pieDim.r - 10).innerRadius(0);
+
+    // create a function to compute the pie slice angles.
+    var pie = d3.layout.pie().sort(null).value(function(d) {  return d.ALICE; });
+
+    var color = d3.scale.ordinal()
+        .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+    // Draw the pie slices.
+    piesvg.selectAll("path").data(pie(pD)).enter().append("path").attr("d", arc)
+        .each(function(d) { this._current = d; })
+        // .style("fill", function(d) { return segColor(d.POP2010); })
+        // .on("mouseover",mouseover).on("mouseout",mouseout);
+
+    // create function to update pie-chart. This will be used by histogram.
+    pC.update = function(nD){
+        piesvg.selectAll("path").data(pie(nD)).transition().duration(500)
+            .attrTween("d", arcTween);
+    }
+    // // Utility function to be called on mouseover a pie slice.
+    // function mouseover(d){
+    //     // call the update function of histogram with new data.
+    //     hG.update(fData.map(function(v){
+    //         return [v.State,v.freq[d.data.type]];}),segColor(d.data.type));
+    // }
+    // //Utility function to be called on mouseout a pie slice.
+    // function mouseout(d){
+    //     // call the update function of histogram with all data.
+    //     hG.update(fData.map(function(v){
+    //         return [v.State,v.total];}), barColor);
+    // }
+    // Animating the pie-slice requiring a custom function which specifies
+    // how the intermediate paths should be drawn.
+    function arcTween(a) {
+        var i = d3.interpolate(this._current, a);
+        this._current = i(0);
+        return function(t) { return arc(i(t));    };
+    }
+    return pC;
+}
+
+
+
+var scale0 = (width - 1) / 2 / Math.PI;
+
+var zoom = d3.behavior.zoom()
+    .translate([width / 2, height / 2])
+    .scale(scale0)
+    .scaleExtent([scale0, 8 * scale0])
+    .on("zoom", zoomed);
+
+    function zoomed() {
+      projection
+          .translate(zoom.translate())
+          .scale(zoom.scale());
+
+      g.selectAll("path")
+          .attr("d", path);
+    }
+
+    d3.select(self.frameElement).style("height", height + "px");
+
+
+</script>
+</body>

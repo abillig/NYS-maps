@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+/* CSS goes here. */
+
+</style>
+<body>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+var width = 960,
+    height = 1160;
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+    var g = svg.append('g');
+
+    var effectLayer = g.append('g')
+      .classed('effect-layer', true);
+
+    var mapLayer = g.append('g')
+      .classed('map-layer', true);
+
+      var projection = d3.geo.mercator()
+        .scale(4500)
+        // Center the Map in Colombia
+        .center([-74.0059, 40.7128])
+        .translate([width / 2, height / 2]);
+
+        var color = d3.scale.threshold()
+                .domain([10, 200, 1000, 2000, 5000, 10000, 20000, 40000, 50000])
+                .range(["#fff7ec","#fee8c8","#fdd49e","#fdbb84","#fc8d59","#ef6548","#d7301f","#b30000","#7f0000"]);
+
+                var y = d3.scale.sqrt()
+                        .domain([0, 50000])
+                        .range([0,325]);
+
+                    var yAxis = d3.svg.axis()
+                        .scale(y)
+                        .tickValues(color.domain())
+                        .orient("right");
+
+
+
+
+
+      var path = d3.geo.path()
+    .projection(projection);
+
+d3.json("Villages.geojson", function(error, uk) {
+  if (error) return console.error(error);
+
+  var features = uk.features;
+
+// Update color scale domain based on data
+
+var purples = ["#fcfbfd","#efedf5","#dadaeb","#bcbddc","#9e9ac8","#807dba","#6a51a3","#54278f","#3f007d"]
+
+
+colorScale = d3.scale.linear()
+    .domain(d3.extent(features, function(d) { return d.properties.POP2010; }))
+    .range([purples[0], purples[8]])
+
+// Draw each province as a path
+mapLayer.selectAll('path')
+    .data(features)
+  .enter().append('path')
+    .attr('d', path)
+    .attr('vector-effect', 'non-scaling-stroke')
+    .style('fill', "#54278f") 
+    .style("stroke", "#777")
+                .style("stroke-width", "1");
+    // colorScale(function(d) {return d.properties.POP2010 / 10000; }))
+    // .on('mouseover', mouseover)
+    // .on('mouseout', mouseout)
+    // .on('click', clicked);
+});
+
+/* JavaScript goes here. */
+
+</script>
